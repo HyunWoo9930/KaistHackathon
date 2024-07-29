@@ -1,6 +1,7 @@
 package org.example.factorial.domain.dto.response;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.example.factorial.domain.Article;
 
@@ -25,4 +26,5 @@ public class ArticleResponse {
 	private Article.ProCon proCon;
 	private Long ratingAverage;
 	private Long ratingCount;
+	private List<UserRatingHistoryArticleResponse> userRatingHistoryArticleResponse;
 }

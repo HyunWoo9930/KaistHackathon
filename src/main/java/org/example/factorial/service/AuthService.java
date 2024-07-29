@@ -1,13 +1,18 @@
 package org.example.factorial.service;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.example.factorial.domain.User;
+import org.example.factorial.domain.dto.response.UserInfoResponse;
+import org.example.factorial.domain.dto.response.UserRatingHistoryInfoResponse;
 import org.example.factorial.domain.dto.response.UserResponse;
 import org.example.factorial.domain.jwt.JwtAuthenticationResponse;
 import org.example.factorial.domain.jwt.JwtTokenProvider;
 import org.example.factorial.domain.signinup.LoginRequest;
 import org.example.factorial.domain.signinup.SignUpRequest;
+import org.example.factorial.repository.UserRatingHistoryRepository;
 import org.example.factorial.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -35,6 +40,8 @@ public class AuthService {
 
 	@Autowired
 	UserRepository userRepository;
+	@Autowired
+	UserRatingHistoryRepository userRatingHistoryRepository;
 
 	public JwtAuthenticationResponse authenticateUser(LoginRequest loginRequest) {
 		Authentication authentication = authenticationManager.authenticate(
@@ -77,5 +84,21 @@ public class AuthService {
 			user.setPassword(passwordEncoder.encode(password));
 			userRepository.save(user);
 		});
+	}
+
+	public UserInfoResponse getUserInfo(UserDetails userDetails) {
+		User user = userRepository.findByUsername(userDetails.getUsername())
+			.orElseThrow(() -> new NotFoundException("User not found"));
+
+		UserResponse userResponse = new UserResponse(user.getUserId(), user.getUsername(), user.getPassword(),
+			user.getEmail(), user.getMembership());
+
+		List<UserRatingHistoryInfoResponse> list = userRatingHistoryRepository.findAllByUser_UserId(user.getUserId())
+			.stream()
+			.map(userRatingHistory -> new UserRatingHistoryInfoResponse(userRatingHistory.getUserRatingHistoryId(),
+				userRatingHistory.getRatingPoint(), userRatingHistory.getArticle().getArticleId()))
+			.toList();
+
+		return new UserInfoResponse(userResponse, list);
 	}
 }

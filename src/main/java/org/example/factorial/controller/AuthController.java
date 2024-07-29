@@ -1,5 +1,6 @@
 package org.example.factorial.controller;
 
+import org.example.factorial.domain.dto.response.UserInfoResponse;
 import org.example.factorial.domain.dto.response.UserResponse;
 import org.example.factorial.domain.signinup.LoginRequest;
 import org.example.factorial.domain.signinup.SignUpRequest;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -60,6 +62,17 @@ public class AuthController {
 		try {
 			authService.changePassword(userDetails, newPassword);
 			return ResponseEntity.ok("Password changed successfully");
+		} catch (RuntimeException e) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+		}
+	}
+
+	@GetMapping("getInfo")
+	@Operation(summary = "회원정보 조회")
+	public ResponseEntity<?> getUserInfo(@AuthenticationPrincipal UserDetails userDetails) {
+		try {
+			UserInfoResponse userInfo = authService.getUserInfo(userDetails);
+			return ResponseEntity.ok(userInfo);
 		} catch (RuntimeException e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
 		}

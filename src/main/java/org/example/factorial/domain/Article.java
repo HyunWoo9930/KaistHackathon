@@ -36,8 +36,8 @@ public class Article {
 	@Enumerated(EnumType.STRING)
 	private ProCon proCon;
 
-	private Long ratingAverage;
-	private Long ratingCount;
+	private Long ratingAverage = 0L;
+	private Long ratingCount = 0L;
 
 	public enum ProCon {
 		PROCON_DECIDING,
@@ -47,11 +47,12 @@ public class Article {
 		TODAY_NEWS,
 	}
 
-	public Article(String articleDate, String search, String link, String title, String content) {
+	public Article(String articleDate, String search, String link, String title, String content, ProCon proCon) {
 		this.articleDate = articleDate;
 		this.search = search;
 		this.link = link;
 		this.title = title;
 		this.content = content;
+		this.proCon = proCon;
 	}
 }

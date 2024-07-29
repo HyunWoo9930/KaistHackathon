@@ -13,6 +13,7 @@ import org.example.factorial.domain.User;
 import org.example.factorial.domain.UserRatingHistory;
 import org.example.factorial.domain.dto.request.UserRatingHistoryRequest;
 import org.example.factorial.domain.dto.response.ArticleResponse;
+import org.example.factorial.domain.dto.response.UserRatingHistoryArticleResponse;
 import org.example.factorial.domain.dto.response.UserRatingHistoryResponse;
 import org.example.factorial.repository.ArticleRepository;
 import org.example.factorial.repository.UserRatingHistoryRepository;
@@ -43,24 +44,24 @@ public class ArticleService {
 		this.userRepository = userRepository;
 	}
 
-	public List<Article> getArticle(String search, String date, int startPage, int endPage) {
+	public List<Article> getArticle(String search, String date, int startPage, int endPage, Article.ProCon proCon) {
 		String newDate = date.split("\\.")[0] + "-" + date.split("\\.")[1] + "-" + date.split("\\.")[2];
 		List<Article> articles = articleRepository.findArticlesByArticleDateAndSearch(newDate, search);
 
 		if (articles.isEmpty()) {
-			saveArticle(search, date, startPage, endPage);
+			saveArticle(search, date, startPage, endPage, proCon);
 			articles = articleRepository.findArticlesByArticleDateAndSearch(newDate, search);
 		}
 		return articles;
 	}
 
-	public void saveArticle(String search, String date, int startPage, int endPage) {
+	public void saveArticle(String search, String date, int startPage, int endPage, Article.ProCon proCon) {
 		StringBuilder output = new StringBuilder();
 		ObjectMapper mapper = new ObjectMapper();
 		try {
-			ProcessBuilder pb = new ProcessBuilder("venv/bin/python", "news_crawling2.py", search, date,
+			ProcessBuilder pb = new ProcessBuilder("/venv/bin/python", "/root/news_crawling2.py", search, date,
 				String.valueOf(startPage), String.valueOf(endPage));
-			pb.directory(new File("/Users/hyunwoo/Desktop/Factorial/src/main/resources"));
+			pb.directory(new File("/root/Factorial/src/main/resources"));
 			Process p = pb.start();
 			BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			String line;
@@ -94,7 +95,7 @@ public class ArticleService {
 				}
 				if (contentText != null) {
 					String date1 = dates.split(" ")[0];
-					Article article = new Article(date1, search, link, title, contentText);
+					Article article = new Article(date1, search, link, title, contentText, proCon);
 					articleRepository.save(article);
 				}
 			});
@@ -194,8 +195,14 @@ public class ArticleService {
 	public ArticleResponse getArticle(Long articleId) {
 		Article article = articleRepository.findById(articleId)
 			.orElseThrow(() -> new NotFoundException("Article not found"));
+		List<UserRatingHistoryArticleResponse> list = userRatingHistoryRepository.findAllByArticle_ArticleId(articleId)
+			.stream()
+			.map(userRatingHistory -> new UserRatingHistoryArticleResponse(userRatingHistory.getUserRatingHistoryId(),
+				userRatingHistory.getRatingPoint(), userRatingHistory.getUser().getUserId()))
+			.toList();
+
 		return new ArticleResponse(article.getArticleId(), article.getArticleDate(), article.getCreatedAt(),
 			article.getSearch(), article.getLink(), article.getTitle(), article.getContent(), article.getProCon(),
-			article.getRatingAverage(), article.getRatingCount());
+			article.getRatingAverage(), article.getRatingCount(), list);
 	}
 }

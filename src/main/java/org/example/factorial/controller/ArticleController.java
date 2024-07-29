@@ -40,11 +40,15 @@ public class ArticleController {
 	@GetMapping("")
 	public ResponseEntity<?> getArticle(@RequestParam String search, @RequestParam(required = false) String date,
 		@RequestParam int startPage, @RequestParam int endPage) {
+		Article.ProCon proCon = null;
 		if (date == null || date.isEmpty()) {
+			proCon = Article.ProCon.TODAY_NEWS;
 			date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy.MM.dd"));
+		} else {
+			proCon = Article.ProCon.NEUTRAL;
 		}
 		try {
-			List<Article> articles = articleService.getArticle(search, date, startPage, endPage);
+			List<Article> articles = articleService.getArticle(search, date, startPage, endPage, proCon);
 			return ResponseEntity.ok(articles);
 		} catch (RuntimeException e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
