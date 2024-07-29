@@ -1,11 +1,9 @@
 package org.example.factorial.domain;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -21,6 +19,11 @@ public class User {
 	private String password;
 	private String email;
 	private Boolean membership = false;
+	private Boolean isActive = true;
+	private String account;
 	private LocalDateTime createdDate = LocalDateTime.now();
-	private Boolean isSubscribed;
+
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	private Set<Subscribe> subscriptions;
+
 }
