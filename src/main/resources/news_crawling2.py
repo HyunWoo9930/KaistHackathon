@@ -37,9 +37,8 @@ def articles_crawler(url):
         print(f"Request failed: {e}")
         return []
 
-def crawl_news(search, start_page, end_page):
-    today = datetime.datetime.now().strftime("%Y.%m.%d")
-    urls = makeUrl(search, today, start_page, end_page)
+def crawl_news(search, date, start_page, end_page):
+    urls = makeUrl(search, date, start_page, end_page)
 
     news_titles = []
     news_urls = []
@@ -88,8 +87,9 @@ def crawl_news(search, start_page, end_page):
 
 if __name__ == "__main__":
     search = sys.argv[1]
-    start_page = int(sys.argv[2])
-    end_page = int(sys.argv[3])
+    date = sys.argv[2]
+    start_page = int(sys.argv[3])
+    end_page = int(sys.argv[4])
 
-    news_data = crawl_news(search, start_page, end_page)
+    news_data = crawl_news(search, date, start_page, end_page)
     print(json.dumps(news_data, ensure_ascii=False))

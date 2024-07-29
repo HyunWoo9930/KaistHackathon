@@ -1,29 +1,23 @@
-package org.example.factorial.domain.oauth;
+package org.example.factorial.domain.jwt;
 
 import java.util.Collection;
+import java.util.Collections;
 
+import org.example.factorial.domain.User;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 public class CustomUserDetails implements UserDetails {
 
-	private final Long id;
-	private final String username;
-	private final Collection<? extends GrantedAuthority> authorities;
+	private String username;
+	private String password;
+	private Collection<? extends GrantedAuthority> authorities;
 
-	public CustomUserDetails(Long id, String username, Collection<? extends GrantedAuthority> authorities) {
-		this.id = id;
-		this.username = username;
-		this.authorities = authorities;
-	}
-
-	public Long getId() {
-		return id;
-	}
-
-	@Override
-	public String getUsername() {
-		return username;
+	public CustomUserDetails(User user) {
+		this.username = user.getUsername();
+		this.password = user.getPassword();
+		this.authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")); // 권한 설정 필요 시 추가
 	}
 
 	@Override
@@ -33,8 +27,12 @@ public class CustomUserDetails implements UserDetails {
 
 	@Override
 	public String getPassword() {
-		return null; // Password는 사용하지 않으므로 null로 처리
+		return password;
+	}
 
+	@Override
+	public String getUsername() {
+		return username;
 	}
 
 	@Override
