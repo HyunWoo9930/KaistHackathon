@@ -5,6 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 import json
+from tqdm import tqdm
 
 def makePgNum(num):
     return num + 9 * (num - 1)
@@ -13,7 +14,7 @@ def makeUrl(search, date, start_pg, end_pg):
     urls = []
     for i in range(start_pg, end_pg + 1):
         page = makePgNum(i)
-        url = f"https://search.naver.com/search.naver?where=news&query={search}&sm=tab_opt&sort=1&photo=0&field=0&pd=3&ds={date}&de={date}&docid=&related=0&mynews=0&office_type=0&office_section_code=0&news_office_checked=&nso=so%3Ar%2Cp%3Afrom{date.replace('.','')}to{date.replace('.','')}%2Ca%3Aall&start={page}"
+        url = f"https://search.naver.com/search.naver?where=news&query={search}&sm=tab_opt&sort=1&photo=0&field=0&pd=3&ds={date}&de={date}&docid=&related=0&mynews=0&office_type=0&office_section_code=0&news_office_checked=&nso=so%3Ar%2Cp%3Afrom{date.replace('.', '')}to{date.replace('.', '')}%2Ca%3Aall&start={page}"
         urls.append(url)
     return urls
 
@@ -37,7 +38,27 @@ def articles_crawler(url):
         print(f"Request failed: {e}")
         return []
 
+def filter_urls_by_sid(urls, sid):
+    filtered_urls = []
+    for url in urls:
+        match = re.search(r'sid=(\d+)', url)
+        if match and match.group(1) == sid:
+            filtered_urls.append(url)
+    return filtered_urls
+
+def get_sid_from_category(category):
+    category_sid_mapping = {
+        "정치": "100",
+        "경제": "101",
+        "사회": "102",
+        "문화": "103",
+        "과학": "105",
+        "세계": "104",
+    }
+    return category_sid_mapping.get(category, "all")
+
 def crawl_news(search, date, start_page, end_page):
+    sid = get_sid_from_category(search)
     urls = makeUrl(search, date, start_page, end_page)
 
     news_titles = []
@@ -49,9 +70,9 @@ def crawl_news(search, date, start_page, end_page):
         urls_list = articles_crawler(url)
         news_urls.extend(urls_list)
 
-    final_urls = [url for url in news_urls if "news.naver.com" in url]
+    final_urls = filter_urls_by_sid(news_urls, sid)
 
-    for url in final_urls:
+    for url in tqdm(final_urls):
         try:
             news = requests.get(url, headers=headers)
             news.raise_for_status()

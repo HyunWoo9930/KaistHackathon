@@ -17,6 +17,8 @@ public class SignUpRequest {
 	@NotBlank
 	@Size(min = 3, max = 50)
 	private String userId;
+	@NotBlank
+	private String name;
 
 	@NotBlank
 	@Size(min = 6, max = 100)

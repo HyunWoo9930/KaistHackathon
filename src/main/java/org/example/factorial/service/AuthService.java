@@ -14,6 +14,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.webjars.NotFoundException;
@@ -64,9 +65,17 @@ public class AuthService {
 		user.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
 		user.setEmail(signUpRequest.getEmail());
 		user.setUsername(signUpRequest.getUserId());
+		user.setName(signUpRequest.getName());
 
 		User save = userRepository.save(user);
 		return new UserResponse(save.getId(), save.getUsername(), save.getPassword(), save.getEmail(),
 			save.getMembership());
+	}
+
+	public void changePassword(UserDetails userDetails, String password) {
+		userRepository.findByUsername(userDetails.getUsername()).ifPresent(user -> {
+			user.setPassword(passwordEncoder.encode(password));
+			userRepository.save(user);
+		});
 	}
 }
