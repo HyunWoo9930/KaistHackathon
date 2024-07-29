@@ -68,7 +68,7 @@ public class AuthService {
 		user.setName(signUpRequest.getName());
 
 		User save = userRepository.save(user);
-		return new UserResponse(save.getId(), save.getUsername(), save.getPassword(), save.getEmail(),
+		return new UserResponse(save.getUserId(), save.getUsername(), save.getPassword(), save.getEmail(),
 			save.getMembership());
 	}
 

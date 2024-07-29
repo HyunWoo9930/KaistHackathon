@@ -9,10 +9,19 @@ import java.net.URL;
 import java.util.List;
 
 import org.example.factorial.domain.Article;
+import org.example.factorial.domain.User;
+import org.example.factorial.domain.UserRatingHistory;
+import org.example.factorial.domain.dto.request.UserRatingHistoryRequest;
+import org.example.factorial.domain.dto.response.ArticleResponse;
+import org.example.factorial.domain.dto.response.UserRatingHistoryResponse;
 import org.example.factorial.repository.ArticleRepository;
+import org.example.factorial.repository.UserRatingHistoryRepository;
+import org.example.factorial.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.webjars.NotFoundException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,9 +33,14 @@ public class ArticleService {
 	private RestTemplate restTemplate;
 
 	private final ArticleRepository articleRepository;
+	private final UserRatingHistoryRepository userRatingHistoryRepository;
+	private final UserRepository userRepository;
 
-	public ArticleService(ArticleRepository articleRepository) {
+	public ArticleService(ArticleRepository articleRepository,
+		UserRatingHistoryRepository userRatingHistoryRepository, UserRepository userRepository) {
 		this.articleRepository = articleRepository;
+		this.userRatingHistoryRepository = userRatingHistoryRepository;
+		this.userRepository = userRepository;
 	}
 
 	public List<Article> getArticle(String search, String date, int startPage, int endPage) {
@@ -149,5 +163,39 @@ public class ArticleService {
 		connection.setRequestProperty("Accept", "text/event-stream");
 		connection.setDoOutput(true);
 		return connection;
+	}
+
+	public UserRatingHistoryResponse rateArticle(UserDetails userDetails,
+		UserRatingHistoryRequest userRatingHistoryRequest) {
+		User user = userRepository.findByUsername(userDetails.getUsername())
+			.orElseThrow(() -> new NotFoundException("User not found"));
+		Article article = articleRepository.findById(userRatingHistoryRequest.getArticleId())
+			.orElseThrow(() -> new NotFoundException("Article not found"));
+		if(userRatingHistoryRepository.existsByUser_UserIdAndArticle_ArticleId(user.getUserId(), article.getArticleId())) {
+			throw new RuntimeException("Already rated");
+		}
+		if (article.getRatingCount() == 0) {
+			article.setRatingCount(1L);
+			article.setRatingAverage(userRatingHistoryRequest.getRate());
+		} else {
+			article.setRatingAverage(
+				(article.getRatingAverage() * article.getRatingCount() + userRatingHistoryRequest.getRate()) / (
+					article.getRatingCount() + 1));
+			article.setRatingCount(article.getRatingCount() + 1);
+		}
+		articleRepository.save(article);
+		UserRatingHistory userRatingHistory = new UserRatingHistory(userRatingHistoryRequest.getRate(), article, user);
+
+		UserRatingHistory save = userRatingHistoryRepository.save(userRatingHistory);
+		return new UserRatingHistoryResponse(save.getUserRatingHistoryId(), save.getRatingPoint(),
+			save.getArticle().getArticleId(), save.getUser().getUserId());
+	}
+
+	public ArticleResponse getArticle(Long articleId) {
+		Article article = articleRepository.findById(articleId)
+			.orElseThrow(() -> new NotFoundException("Article not found"));
+		return new ArticleResponse(article.getArticleId(), article.getArticleDate(), article.getCreatedAt(),
+			article.getSearch(), article.getLink(), article.getTitle(), article.getContent(), article.getProCon(),
+			article.getRatingAverage(), article.getRatingCount());
 	}
 }

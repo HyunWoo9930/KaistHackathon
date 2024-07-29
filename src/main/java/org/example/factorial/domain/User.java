@@ -15,11 +15,12 @@ import lombok.Setter;
 public class User {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+	private Long userId;
 	private String username;
 	private String name;
 	private String password;
 	private String email;
 	private Boolean membership = false;
 	private LocalDateTime createdDate = LocalDateTime.now();
+	private Boolean isSubscribed;
 }
