@@ -19,7 +19,6 @@ import java.time.LocalDateTime;
 public class Documents {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Schema(hidden = true)
     private Long id;
     private String name;
     private LocalDateTime createdAt;
