@@ -8,6 +8,7 @@ import org.example.factorial.domain.Article;
 import org.example.factorial.domain.UserRatingHistory;
 import org.example.factorial.domain.dto.request.UserRatingHistoryRequest;
 import org.example.factorial.domain.dto.response.ArticleResponse;
+import org.example.factorial.domain.dto.response.ArticleResponseProCon;
 import org.example.factorial.domain.dto.response.UserRatingHistoryResponse;
 import org.example.factorial.service.ArticleService;
 import org.springframework.http.HttpStatus;
@@ -73,6 +74,26 @@ public class ArticleController {
 		try {
 			ArticleResponse article = articleService.getArticle(article_id);
 			return ResponseEntity.ok(article);
+		} catch (RuntimeException e) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+		}
+	}
+
+	@GetMapping("/all_discuss_news")
+	public ResponseEntity<?> getAllDiscussNews() {
+		try {
+			List<ArticleResponse> articles = articleService.getAllDiscussNews();
+			return ResponseEntity.ok(articles);
+		} catch (RuntimeException e) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+		}
+	}
+
+	@GetMapping("/verdicted_news")
+	public ResponseEntity<?> getAllVerdictedNews() {
+		try {
+			ArticleResponseProCon articles = articleService.getAllVerdictedNews();
+			return ResponseEntity.ok(articles);
 		} catch (RuntimeException e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
 		}

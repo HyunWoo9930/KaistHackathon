@@ -28,7 +28,7 @@ public class ArticleStatusUpdater {
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
 
-	@Scheduled(cron = "0 */10 * * * *")
+	@Scheduled(cron = "0 0 */6 * * *")
 	public void scheduledSaveArticle() {
 		String[] searchList = {"정치", "경제", "사회", "문화", "과학", "세계"};
 		for (String search : searchList) {
@@ -45,9 +45,12 @@ public class ArticleStatusUpdater {
 		StringBuilder output = new StringBuilder();
 		ObjectMapper mapper = new ObjectMapper();
 		try {
-			ProcessBuilder pb = new ProcessBuilder("venv/bin/python", "news_crawling2.py", search, date,
+			ProcessBuilder pb = new ProcessBuilder("/app/venv/bin/python3", "/app/news_crawling2.py", search, date,
 				String.valueOf(startPage), String.valueOf(endPage));
-			pb.directory(new File("/root/Factorial/src/main/resources"));
+			pb.directory(new File("/app"));
+			// ProcessBuilder pb = new ProcessBuilder("venv/bin/python", "news_crawling2.py", search, date,
+			// 	String.valueOf(startPage), String.valueOf(endPage));
+			// pb.directory(new File("/Users/hyunwoo/Desktop/Factorial/src/main/resources"));
 			Process p = pb.start();
 			BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			String line;

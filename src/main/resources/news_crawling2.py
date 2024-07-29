@@ -1,5 +1,4 @@
 import sys
-import datetime
 import re
 import requests
 from bs4 import BeautifulSoup
@@ -15,6 +14,7 @@ def makeUrl(search, date, start_pg, end_pg):
     for i in range(start_pg, end_pg + 1):
         page = makePgNum(i)
         url = f"https://search.naver.com/search.naver?where=news&query={search}&sm=tab_opt&sort=1&photo=0&field=0&pd=3&ds={date}&de={date}&docid=&related=0&mynews=0&office_type=0&office_section_code=0&news_office_checked=&nso=so%3Ar%2Cp%3Afrom{date.replace('.', '')}to{date.replace('.', '')}%2Ca%3Aall&start={page}"
+        print(f"Generated URL: {url}", file=sys.stderr)  # URL 출력
         urls.append(url)
     return urls
 
@@ -30,20 +30,26 @@ def articles_crawler(url):
     try:
         original_html = requests.get(url, headers=headers)
         original_html.raise_for_status()
+        print(f"URL: {url} | Status Code: {original_html.status_code}", file=sys.stderr)  # 응답 상태 코드 출력
         html = BeautifulSoup(original_html.text, "html.parser")
         url_naver = html.select("div.group_news > ul.list_news > li div.news_area > div.news_info > div.info_group > a.info")
         url = news_attrs_crawler(url_naver, 'href')
+        print(f"Crawled URLs: {url}", file=sys.stderr)  # 크롤링된 URL 출력
         return url
     except requests.exceptions.RequestException as e:
-        print(f"Request failed: {e}")
+        print(f"Request failed: {e}", file=sys.stderr)
         return []
 
 def filter_urls_by_sid(urls, sid):
     filtered_urls = []
     for url in urls:
+        print(f"Checking URL: {url}", file=sys.stderr)  # URL 체크
         match = re.search(r'sid=(\d+)', url)
-        if match and match.group(1) == sid:
-            filtered_urls.append(url)
+        if match:
+            found_sid = match.group(1)
+            print(f"Found SID: {found_sid}", file=sys.stderr)  # 찾은 SID 출력
+            if found_sid == sid:
+                filtered_urls.append(url)
     return filtered_urls
 
 def get_sid_from_category(category):
@@ -59,6 +65,7 @@ def get_sid_from_category(category):
 
 def crawl_news(search, date, start_page, end_page):
     sid = get_sid_from_category(search)
+    print(f"Category SID: {sid}", file=sys.stderr)  # SID 확인
     urls = makeUrl(search, date, start_page, end_page)
 
     news_titles = []
@@ -70,37 +77,45 @@ def crawl_news(search, date, start_page, end_page):
         urls_list = articles_crawler(url)
         news_urls.extend(urls_list)
 
+    print(f"News URLs: {news_urls}", file=sys.stderr)  # 필터링 전의 URL 출력
     final_urls = filter_urls_by_sid(news_urls, sid)
+    print(f"Filtered URLs: {final_urls}", file=sys.stderr)  # 필터링된 URL 출력
 
-    for url in tqdm(final_urls):
+    for url in tqdm(final_urls, file=sys.stderr):
         try:
             news = requests.get(url, headers=headers)
             news.raise_for_status()
             news_html = BeautifulSoup(news.text, "html.parser")
 
-            title = news_html.select_one("#ct > div.media_end_head.go_trans > div.media_end_head_title > h2")
-            if title is None:
-                title = news_html.select_one("#content > div.end_ct > div > h2")
-            title = re.sub('<[^>]*>', '', str(title))
+            # 기사 제목 크롤링
+            title_elem = news_html.select_one('h2.media_end_head_headline')
+            if title_elem is None:
+                title_elem = news_html.select_one('h2#articleTitle')
+            title = re.sub('<[^>]*>', '', str(title_elem))
+            print(f"Crawled title: {title}", file=sys.stderr)  # 크롤링된 제목 출력
 
+            # 기사 내용 크롤링
             content = news_html.select("article#dic_area")
             if not content:
                 content = news_html.select("#articeBody")
             content = ''.join(str(content))
             content = re.sub('<[^>]*>', '', content).replace("""[\n\n\n\n\n// flash 오류를 우회하기 위한 함수 추가\nfunction _flash_removeCallback() {}""", '')
 
+
+        # 기사 날짜 크롤링
             try:
-                html_date = news_html.select_one("div#ct > div.media_end_head.go_trans > div.media_end_head_info.nv_notrans > div.media_end_head_info_datestamp > div > span")
+                html_date = news_html.select_one('span.media_end_head_info_datestamp_time')
                 news_date = html_date.attrs['data-date-time']
             except AttributeError:
-                news_date = news_html.select_one("#content > div.end_ct > div > div.article_info > span > em")
+                news_date = news_html.select_one('span.t11')
                 news_date = re.sub('<[^>]*>', '', str(news_date))
+            print(f"Crawled date: {news_date}", file=sys.stderr)  # 크롤링된 날짜 출력
 
             news_titles.append(title)
             news_contents.append(content)
             news_dates.append(news_date)
         except requests.exceptions.RequestException as e:
-            print(f"Failed to crawl {url}: {e}")
+            print(f"Failed to crawl {url}: {e}", file=sys.stderr)
 
     news_df = pd.DataFrame({'date': news_dates, 'title': news_titles, 'link': final_urls, 'content': news_contents})
     news_df = news_df.drop_duplicates(keep='first', ignore_index=True)

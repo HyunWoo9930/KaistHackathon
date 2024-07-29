@@ -8,4 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ArticleRepository extends JpaRepository<Article, Long> {
 	List<Article> findArticlesByArticleDateAndSearch(String date, String search);
+	List<Article> findAllByProCon(Article.ProCon proCon);
 }

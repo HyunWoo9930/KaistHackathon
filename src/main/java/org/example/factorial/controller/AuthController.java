@@ -67,7 +67,7 @@ public class AuthController {
 		}
 	}
 
-	@GetMapping("getInfo")
+	@GetMapping("/getInfo")
 	@Operation(summary = "회원정보 조회")
 	public ResponseEntity<?> getUserInfo(@AuthenticationPrincipal UserDetails userDetails) {
 		try {

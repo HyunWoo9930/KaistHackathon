@@ -26,5 +26,4 @@ public class ArticleResponse {
 	private Article.ProCon proCon;
 	private Long ratingAverage;
 	private Long ratingCount;
-	private List<UserRatingHistoryArticleResponse> userRatingHistoryArticleResponse;
 }
