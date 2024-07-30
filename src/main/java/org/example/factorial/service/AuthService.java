@@ -96,7 +96,7 @@ public class AuthService {
 		List<UserRatingHistoryInfoResponse> list = userRatingHistoryRepository.findAllByUser_UserId(user.getUserId())
 			.stream()
 			.map(userRatingHistory -> new UserRatingHistoryInfoResponse(userRatingHistory.getUserRatingHistoryId(),
-				userRatingHistory.getRatingPoint(), userRatingHistory.getArticle().getArticleId(),userRatingHistory.getRatingDate()))
+				userRatingHistory.getRatingPoint(), userRatingHistory.getRatingDate(), userRatingHistory.getArticle().getLink()))
 			.toList();
 
 		return new UserInfoResponse(userResponse, list);

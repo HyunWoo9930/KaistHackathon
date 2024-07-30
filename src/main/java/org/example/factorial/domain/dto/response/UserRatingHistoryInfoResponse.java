@@ -12,6 +12,6 @@ import java.time.LocalDate;
 public class UserRatingHistoryInfoResponse {
 	private Long userRatingHistoryId;
 	private Long ratingPoint;
-	private Long articleId;
 	private LocalDate ratingDate;
+	private String newsLink;
 }
