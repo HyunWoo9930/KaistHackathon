@@ -47,7 +47,7 @@ public class InquireService {
         Inquire inquire = inquireRepository.findById(inquireId)
                 .orElseThrow(() -> new NotFoundException("Question not found"));
 
-        if(user.getUsername() != "admin"){
+        if(user.getUsername().equals("admin")){
             throw new AccessDeniedException("답변 권한이 없습니다.");
         }
 
