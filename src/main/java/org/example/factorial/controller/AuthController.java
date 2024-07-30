@@ -77,4 +77,14 @@ public class AuthController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
 		}
 	}
+
+	@GetMapping("/duplicate_id")
+	@Operation(summary = "아이디 중복 확인")
+	public ResponseEntity<?> duplicateId(@RequestParam(value = "username") String username) {
+		if (!authService.duplicateId(username)) {
+			return ResponseEntity.ok("ID is available");
+		} else {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("ID is already taken");
+		}
+	}
 }

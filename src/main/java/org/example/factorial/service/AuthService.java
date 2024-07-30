@@ -2,7 +2,6 @@ package org.example.factorial.service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.example.factorial.domain.User;
 import org.example.factorial.domain.dto.response.UserInfoResponse;
@@ -76,7 +75,7 @@ public class AuthService {
 
 		User save = userRepository.save(user);
 		return new UserResponse(save.getUserId(), save.getUsername(), save.getPassword(), save.getEmail(),
-			save.getMembership());
+			save.getMembership(), save.getName(), save.getAccount());
 	}
 
 	public void changePassword(UserDetails userDetails, String password) {
@@ -91,14 +90,20 @@ public class AuthService {
 			.orElseThrow(() -> new NotFoundException("User not found"));
 
 		UserResponse userResponse = new UserResponse(user.getUserId(), user.getUsername(), user.getPassword(),
-			user.getEmail(), user.getMembership());
+			user.getEmail(), user.getMembership(), user.getName(), user.getAccount());
 
 		List<UserRatingHistoryInfoResponse> list = userRatingHistoryRepository.findAllByUser_UserId(user.getUserId())
 			.stream()
 			.map(userRatingHistory -> new UserRatingHistoryInfoResponse(userRatingHistory.getUserRatingHistoryId(),
-				userRatingHistory.getRatingPoint(), userRatingHistory.getRatingDate(), userRatingHistory.getArticle().getLink()))
+				userRatingHistory.getRatingPoint(), userRatingHistory.getRatingDate(),
+				userRatingHistory.getArticle().getTitle()
+			))
 			.toList();
 
 		return new UserInfoResponse(userResponse, list);
+	}
+
+	public Boolean duplicateId(String username) {
+		return userRepository.existsByUsername(username);
 	}
 }
