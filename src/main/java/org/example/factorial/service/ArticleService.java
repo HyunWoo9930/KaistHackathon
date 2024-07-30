@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.time.LocalDate;
 import java.util.List;
 
 import org.example.factorial.domain.Article;
@@ -191,11 +192,11 @@ public class ArticleService {
 			article.setRatingCount(article.getRatingCount() + 1);
 		}
 		articleRepository.save(article);
-		UserRatingHistory userRatingHistory = new UserRatingHistory(userRatingHistoryRequest.getRate(), article, user);
+		UserRatingHistory userRatingHistory = new UserRatingHistory(userRatingHistoryRequest.getRate(), article, user,LocalDate.now());
 
 		UserRatingHistory save = userRatingHistoryRepository.save(userRatingHistory);
 		return new UserRatingHistoryResponse(save.getUserRatingHistoryId(), save.getRatingPoint(),
-			save.getArticle().getArticleId(), save.getUser().getUserId());
+			save.getArticle().getArticleId(), save.getUser().getUserId(), save.getRatingDate());
 	}
 
 	public ArticleResponse getArticle(Long articleId) {
