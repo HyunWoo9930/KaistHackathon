@@ -15,4 +15,5 @@ public class ChatResponse {
 	private Long userId;
 	private Long articleId;
 	private LocalDateTime createdAt;
+	private String username;
 }
