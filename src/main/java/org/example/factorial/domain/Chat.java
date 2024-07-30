@@ -43,4 +43,15 @@ public class Chat {
 	public Chat() {
 
 	}
+
+	@Override
+	public String toString() {
+		return "Chat{" +
+			"chatId=" + chatId +
+			", article=" + article +
+			", user=" + user +
+			", text='" + text + '\'' +
+			", createdAt=" + createdAt +
+			'}';
+	}
 }

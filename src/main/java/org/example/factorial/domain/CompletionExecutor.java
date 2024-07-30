@@ -1,13 +1,12 @@
 package org.example.factorial.domain;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
-import org.example.factorial.domain.dto.CompletionRequest;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.JSONObject;
 
 public class CompletionExecutor {
 	private final String host;
@@ -22,23 +21,39 @@ public class CompletionExecutor {
 		this.requestId = requestId;
 	}
 
-	public String execute(CompletionRequest completionRequest) throws Exception {
-		ObjectMapper objectMapper = new ObjectMapper();
-		String requestBody = objectMapper.writeValueAsString(completionRequest);
+	public StringBuilder execute(JSONObject completionRequest) throws Exception {
+		URL url = new URL(this.host + "/testapp/v1/chat-completions/HCX-003");
+		HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+		conn.setRequestMethod("POST");
+		conn.setRequestProperty("X-NCP-CLOVASTUDIO-API-KEY", this.apiKey);
+		conn.setRequestProperty("X-NCP-APIGW-API-KEY", this.apiKeyPrimaryVal);
+		conn.setRequestProperty("X-NCP-CLOVASTUDIO-REQUEST-ID", this.requestId);
+		conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+		conn.setRequestProperty("Accept", "text/event-stream");
+		conn.setDoOutput(true);
 
-		HttpRequest request = HttpRequest.newBuilder()
-			.uri(new URI(host + "/testapp/v1/chat-completions/HCX-003"))
-			.header("X-NCP-CLOVASTUDIO-API-KEY", apiKey)
-			.header("X-NCP-APIGW-API-KEY", apiKeyPrimaryVal)
-			.header("X-NCP-CLOVASTUDIO-REQUEST-ID", requestId)
-			.header("Content-Type", "application/json; charset=utf-8")
-			.header("Accept", "text/event-stream")
-			.POST(HttpRequest.BodyPublishers.ofString(requestBody))
-			.build();
+		try (OutputStream os = conn.getOutputStream()) {
+			byte[] input = completionRequest.toString().getBytes("utf-8");
+			os.write(input, 0, input.length);
+		}
 
-		HttpClient client = HttpClient.newHttpClient();
-		HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+		StringBuilder result = null;
+		boolean captureNextLine = false;
 
-		return response.body();
+		try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "utf-8"))) {
+			String responseLine;
+			while ((responseLine = br.readLine()) != null && result == null) {
+				System.out.println("responseLine = " + responseLine); // Debugging output
+				if (captureNextLine) {
+					String data = responseLine.substring(5).trim();
+					System.out.println("data = " + data);
+					result = new StringBuilder((data));
+				}
+				if (responseLine.startsWith("event:result")) {
+					captureNextLine = true;
+				}
+			}
+		}
+		return result;
 	}
 }
