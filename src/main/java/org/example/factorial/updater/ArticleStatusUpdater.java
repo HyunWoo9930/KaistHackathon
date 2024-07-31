@@ -157,22 +157,24 @@ public class ArticleStatusUpdater {
 		return connection;
 	}
 
-	@Scheduled(cron = "0 0 */6 * * *") // 1분마다 실행
+	@Scheduled(cron = "*/30 * * * * *")
 	public void updateArticleStatus() {
-		String query1 = "UPDATE article SET pro_con = CASE "
-			+ "WHEN pro_con = 'TODAY_NEWS' AND rating_count < 200 THEN 'NEUTRAL' "
-			+ "WHEN pro_con = 'TODAY_NEWS' AND rating_count >= 200 AND rating_average < 2 THEN 'CON' "
-			+ "WHEN pro_con = 'TODAY_NEWS' AND rating_count >= 200 AND rating_average >= 2 AND rating_average < 5 THEN 'PROCON_DECIDING' "
-			+ "WHEN pro_con = 'TODAY_NEWS' AND rating_count >= 200 AND rating_average >= 5 THEN 'PRO' "
-			+ "ELSE pro_con END "
-			+ "WHERE createdAt <= DATE_SUB(NOW(), INTERVAL 1 DAY) AND pro_con = 'TODAY_NEWS';";
+		String query1 = "UPDATE article " +
+			"SET pro_con = CASE " +
+			"WHEN pro_con = 'TODAY_NEWS' AND rating_count < 200 THEN 'NEUTRAL' " +
+			"WHEN pro_con = 'TODAY_NEWS' AND rating_count >= 200 AND rating_average < 2 THEN 'CON' " +
+			"WHEN pro_con = 'TODAY_NEWS' AND rating_count >= 200 AND rating_average >= 2 AND rating_average < 5 THEN 'PROCON_DECIDING' " +
+			"WHEN pro_con = 'TODAY_NEWS' AND rating_count >= 200 AND rating_average >= 5 THEN 'PRO' " +
+			"ELSE pro_con END " +
+			"WHERE `created_at` <= DATE_SUB(NOW(), INTERVAL 1 DAY) " +
+			"AND pro_con = 'TODAY_NEWS'";
 
 		String query2 = "UPDATE article SET pro_con = CASE "
 			+ "WHEN pro_con = 'PROCON_DECIDING' AND rating_count < 400 THEN 'NEUTRAL' "
 			+ "WHEN pro_con = 'PROCON_DECIDING' AND rating_count >= 400 AND rating_average < 4 THEN 'CON' "
 			+ "WHEN pro_con = 'PROCON_DECIDING' AND rating_count >= 400 AND rating_average >= 4 THEN 'PRO' "
 			+ "ELSE pro_con END "
-			+ "WHERE createdAt <= DATE_SUB(NOW(), INTERVAL 7 DAY) AND pro_con = 'PROCON_DECIDING';";
+			+ "WHERE created_at <= DATE_SUB(NOW(), INTERVAL 7 DAY) AND pro_con = 'PROCON_DECIDING';";
 
 		jdbcTemplate.update(query1);
 		jdbcTemplate.update(query2);

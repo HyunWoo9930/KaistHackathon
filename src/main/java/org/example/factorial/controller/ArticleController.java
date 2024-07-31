@@ -65,7 +65,7 @@ public class ArticleController {
 		} catch (NotFoundException e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
 		} catch (RuntimeException e) {
-			return ResponseEntity.status(111).body(e.getMessage());
+			return ResponseEntity.status(400).body(e.getMessage());
 		}
 	}
 
