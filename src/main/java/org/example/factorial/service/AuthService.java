@@ -53,12 +53,9 @@ public class AuthService {
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 
 		String jwt = tokenProvider.generateToken(authentication.getName());
-		Optional<User> byUserId = userRepository.findByUsername(loginRequest.getUsername());
-		if (byUserId.isPresent()) {
-			return new JwtAuthenticationResponse(jwt);
-		} else {
-			throw new NotFoundException("User Not Found");
-		}
+		User byUserId = userRepository.findByUsername(loginRequest.getUsername()).orElseThrow(() -> new NotFoundException("User Not Found"));
+
+		return new JwtAuthenticationResponse(jwt, byUserId.getUsername());
 	}
 
 	@Transactional
