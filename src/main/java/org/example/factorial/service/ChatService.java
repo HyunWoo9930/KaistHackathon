@@ -37,7 +37,7 @@ public class ChatService {
 		Chat save = chatRepository.save(chat);
 
 		return new ChatResponse(save.getChatId(), save.getText(), save.getUser().getUserId(),
-			save.getArticle().getArticleId(), save.getCreatedAt());
+			save.getArticle().getArticleId(), save.getCreatedAt(),save.getUser().getUsername());
 	}
 
 	public List<ChatResponse> getChat(Long articleId) {
@@ -47,7 +47,7 @@ public class ChatService {
 		List<Chat> chats = chatRepository.findAllByArticle(article);
 		return chats.stream()
 			.map(chat -> new ChatResponse(chat.getChatId(), chat.getText(), chat.getUser().getUserId(),
-				chat.getArticle().getArticleId(), chat.getCreatedAt()))
+				chat.getArticle().getArticleId(), chat.getCreatedAt(), chat.getUser().getUsername()))
 			.toList();
 	}
 }
