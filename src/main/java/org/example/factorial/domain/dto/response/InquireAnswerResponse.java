@@ -7,11 +7,13 @@ import java.time.LocalDateTime;
 
 @Getter @Setter
 public class InquireAnswerResponse {
+    private Long inquireId;
     private String inquireText;
     private String answerText;
     private LocalDateTime createdAt;
 
-    public InquireAnswerResponse(String inquireText, String answerText, LocalDateTime createdAt){
+    public InquireAnswerResponse(Long inquireId, String inquireText, String answerText, LocalDateTime createdAt) {
+        this.inquireId = inquireId;
         this.inquireText = inquireText;
         this.answerText = answerText;
         this.createdAt = createdAt;

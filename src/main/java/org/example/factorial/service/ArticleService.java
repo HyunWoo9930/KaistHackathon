@@ -32,9 +32,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Service
 public class ArticleService {
 
-	@Autowired
-	private RestTemplate restTemplate;
-
 	private final ArticleRepository articleRepository;
 	private final UserRatingHistoryRepository userRatingHistoryRepository;
 	private final UserRepository userRepository;
